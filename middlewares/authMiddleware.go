@@ -1,0 +1,13 @@
+package middlewares
+
+import (
+	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/jwt/v3"
+	"github.com/javiergomezve/backend-admin/util"
+)
+
+func IsAuthenticated() fiber.Handler {
+	return jwtware.New(jwtware.Config{
+		SigningKey: []byte(util.SecretKey),
+	})
+}

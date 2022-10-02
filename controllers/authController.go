@@ -1,13 +1,11 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/javiergomezve/backend-admin/database"
 	"github.com/javiergomezve/backend-admin/models"
+	"github.com/javiergomezve/backend-admin/util"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
 func RegisterUser(c *fiber.Ctx) error {
@@ -63,17 +61,10 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	claims := jwt.MapClaims{
-		"id":   user.Id,
-		"name": user.FirstName,
-		"exp":  time.Now().Add(time.Hour * 72).Unix(),
-	}
+	token, err := util.GenerateJwt(user)
 
-	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	token, err := t.SignedString([]byte("secret"))
 	if err != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
+		c.Status(fiber.StatusInternalServerError)
 	}
 
 	return c.JSON(fiber.Map{
@@ -83,11 +74,7 @@ func Login(c *fiber.Ctx) error {
 }
 
 func User(c *fiber.Ctx) error {
-	userEncode := c.Locals("user").(*jwt.Token)
-	claims := userEncode.Claims.(jwt.MapClaims)
-	id := claims["id"].(float64)
-	name := claims["name"].(string)
-	fmt.Println(name)
+	id := util.ParseJwt(c)
 
 	var user models.User
 	database.DB.Where("id = ?", id).First(&user)
