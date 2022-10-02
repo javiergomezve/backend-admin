@@ -5,7 +5,6 @@ import (
 	"github.com/javiergomezve/backend-admin/database"
 	"github.com/javiergomezve/backend-admin/models"
 	"github.com/javiergomezve/backend-admin/util"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func RegisterUser(c *fiber.Ctx) error {
@@ -22,14 +21,12 @@ func RegisterUser(c *fiber.Ctx) error {
 		})
 	}
 
-	password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
-
 	user := models.User{
 		FirstName: data["first_name"],
 		LastName:  data["last_name"],
 		Email:     data["email"],
-		Password:  password,
 	}
+	user.SetPassword(data["password"])
 
 	database.DB.Create(&user)
 
@@ -54,7 +51,7 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(data["password"])); err != nil {
+	if err := user.ComparePassword(data["password"]); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "Incorrect email or password",
