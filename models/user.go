@@ -1,6 +1,9 @@
 package models
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+)
 
 type User struct {
 	Id        uint   `json:"id"`
@@ -8,6 +11,9 @@ type User struct {
 	LastName  string `json:"last_name"`
 	Email     string `gorm:"unique" json:"email"`
 	Password  []byte `json:"-"`
+	Roles     []Role `json:"roles" gorm:"many2many:role_user"`
+
+	gorm.Model
 }
 
 func (user *User) SetPassword(password string) {

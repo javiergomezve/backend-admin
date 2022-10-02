@@ -17,12 +17,29 @@ func AllUsers(c *fiber.Ctx) error {
 }
 
 func CreateUser(c *fiber.Ctx) error {
-	var user models.User
+	var userDTO fiber.Map
 
-	if err := c.BodyParser(&user); err != nil {
+	if err := c.BodyParser(&userDTO); err != nil {
 		return err
 	}
 
+	list := userDTO["roles"].([]interface{})
+	roles := make([]models.Role, len(list))
+
+	for i, roleId := range list {
+		id, _ := strconv.Atoi(roleId.(string))
+
+		roles[i] = models.Role{
+			Id: uint(id),
+		}
+	}
+
+	user := models.User{
+		FirstName: userDTO["first_name"].(string),
+		LastName:  userDTO["last_name"].(string),
+		Email:     userDTO["email"].(string),
+		Roles:     roles,
+	}
 	user.SetPassword("1234")
 
 	database.DB.Create(&user)
@@ -37,7 +54,7 @@ func GetUser(c *fiber.Ctx) error {
 		Id: uint(id),
 	}
 
-	database.DB.Find(&user)
+	database.DB.Preload("Roles").Find(&user)
 
 	return c.JSON(user)
 }
@@ -45,12 +62,32 @@ func GetUser(c *fiber.Ctx) error {
 func UpdateUser(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
 
-	user := models.User{
-		Id: uint(id),
+	var userDTO fiber.Map
+
+	if err := c.BodyParser(&userDTO); err != nil {
+		return err
 	}
 
-	if err := c.BodyParser(&user); err != nil {
-		return err
+	list := userDTO["roles"].([]interface{})
+	roles := make([]models.Role, len(list))
+
+	for i, roleId := range list {
+		id, _ := strconv.Atoi(roleId.(string))
+
+		roles[i] = models.Role{
+			Id: uint(id),
+		}
+	}
+
+	result := make(map[string]string)
+	database.DB.Table("role_user").Where("user_id", id).Delete(&result)
+
+	user := models.User{
+		Id:        uint(id),
+		FirstName: userDTO["first_name"].(string),
+		LastName:  userDTO["last_name"].(string),
+		Email:     userDTO["email"].(string),
+		Roles:     roles,
 	}
 
 	database.DB.Model(&user).Updates(user)
