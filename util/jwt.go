@@ -2,10 +2,11 @@ package util
 
 import (
 	"errors"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/javiergomezve/backend-admin/models"
-	"time"
 )
 
 const SecretKey = "secret"

@@ -67,10 +67,11 @@ func GetUser(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
 
 	user := models.User{
-		Id: uint(id),
+		Id:    uint(id),
+		Roles: []models.Role{},
 	}
 
-	database.DB.Preload("Roles").Find(&user)
+	database.DB.Preload("Role").Find(&user)
 
 	return c.JSON(user)
 }
@@ -106,7 +107,7 @@ func UpdateUser(c *fiber.Ctx) error {
 		Roles:     roles,
 	}
 
-	database.DB.Model(&user).Updates(user)
+	database.DB.Debug().Model(&user).Updates(user)
 
 	return c.JSON(user)
 }
