@@ -11,7 +11,7 @@ import (
 func AllRoles(c *fiber.Ctx) error {
 	var roles []models.Role
 
-	database.DB.Find(&roles)
+	database.DB.Preload("Permissions").Find(&roles)
 
 	return c.JSON(roles)
 }
