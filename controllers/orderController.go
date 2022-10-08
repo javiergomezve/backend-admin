@@ -7,15 +7,24 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/javiergomezve/backend-admin/database"
+	"github.com/javiergomezve/backend-admin/middlewares"
 	"github.com/javiergomezve/backend-admin/models"
 )
 
 func AllOrders(c *fiber.Ctx) error {
+	if err := middlewares.IsAuthorize(c, "orders"); err != nil {
+		return err
+	}
+
 	page, _ := strconv.Atoi(c.Params("page", "1"))
 	return c.JSON(models.Paginate(database.DB, &models.Order{}, page))
 }
 
 func Export(c *fiber.Ctx) error {
+	if err := middlewares.IsAuthorize(c, "orders"); err != nil {
+		return err
+	}
+
 	filePath := "./csv/orders.csv"
 
 	if err := createFile(filePath); err != nil {
@@ -83,6 +92,10 @@ type Sales struct {
 }
 
 func Chart(c *fiber.Ctx) error {
+	if err := middlewares.IsAuthorize(c, "orders"); err != nil {
+		return err
+	}
+
 	var sales []Sales
 
 	database.DB.Raw(`
